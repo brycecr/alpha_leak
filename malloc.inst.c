@@ -5,18 +5,18 @@
  * HISTORY
  * $Log: malloc.inst.c,v $
  * Revision 1.1.2.2  1995/04/27  19:47:30  Greg_Lueck
- * 	First revision of productized Atom and tools.
- * 	[1995/04/26  21:20:13  Greg_Lueck]
+ *  First revision of productized Atom and tools.
+ *  [1995/04/26  21:20:13  Greg_Lueck]
  *
  * $EndLog$
  */
 #pragma ident "@(#)$RCSfile: malloc.inst.c,v $ $Revision: 1.1.2.2 $ (DEC) $Date: 1995/04/27 19:47:30 $"
 
 /*
-**  malloc.inst.c -	Instrumentation routines for malloc recording tool.
+**  malloc.inst.c - Instrumentation routines for malloc recording tool.
 **
-**	This tool records each call to the routine malloc() and prints a
-**	summary of the application's allocated memory.
+**  This tool records each call to the routine malloc() and prints a
+**  summary of the application's allocated memory.
 */
 
 #include <stdio.h>
@@ -28,8 +28,8 @@
 */
 void InstrumentInit(int iargc, char **iargv)
 {
-    unsigned long	BrkStart;
-    Obj *        	ObjMain;
+    unsigned long   BrkStart;
+    Obj *           ObjMain;
 
 
     /*
@@ -50,7 +50,7 @@ void InstrumentInit(int iargc, char **iargv)
      */
     ObjMain = GetFirstObj();
     BrkStart = GetObjInfo(ObjMain, ObjUninitDataStartAddress) +
-	GetObjInfo(ObjMain, ObjUninitDataSize);
+    GetObjInfo(ObjMain, ObjUninitDataSize);
     AddCallProgram(ProgramBefore, "Initialize", BrkStart);
 
     /*
@@ -65,7 +65,7 @@ void InstrumentInit(int iargc, char **iargv)
  */
 Instrument(int iargc, char **iargv, Obj *obj)
 {
-    ProcRes	pres;
+    ProcRes pres;
 
 
     /*
@@ -74,8 +74,8 @@ Instrument(int iargc, char **iargv, Obj *obj)
      */
     ResolveNamedProc("malloc", &pres);
     if (pres.proc != NULL) {
-	AddCallProc(pres.proc, ProcBefore, "BeforeMalloc", REG_ARG_1);
-	AddCallProc(pres.proc, ProcAfter, "AfterMalloc");
+    AddCallProc(pres.proc, ProcBefore, "BeforeMalloc", REG_ARG_1);
+    AddCallProc(pres.proc, ProcAfter, "AfterMalloc");
     }
 
     /*
@@ -84,8 +84,9 @@ Instrument(int iargc, char **iargv, Obj *obj)
      */
     ResolveNamedProc("__brk", &pres);
     if (pres.proc != NULL) {
-	AddCallProc(pres.proc, ProcBefore, "BeforeBrk", REG_ARG_1);
+    AddCallProc(pres.proc, ProcBefore, "BeforeBrk", REG_ARG_1);
     }
+    
 
     /*
      * If this object defines sbrk(), add an instrumentation point.
@@ -93,8 +94,29 @@ Instrument(int iargc, char **iargv, Obj *obj)
      */
     ResolveNamedProc("__sbrk", &pres);
     if (pres.proc != NULL) {
-	AddCallProc(pres.proc, ProcBefore, "BeforeSbrk", REG_ARG_1);
+    AddCallProc(pres.proc, ProcBefore, "BeforeSbrk", REG_ARG_1);
     }
+
+    Proc *p; Block *b; Inst *i;
+    ProcRes target;
+    int opcode,function;
+    
+    for (p = GetFirstObjProc(obj); p != NULL; p = GetNextProc(p)) {
+        for (b = GetFirstBlock(p); b != NULL; b = GetNextBlock(b)) {
+            for (i = GetFirstInst(b); i != NULL; i = GetNextInst(i)) {
+                /* JSR and BSR */
+                opcode = GetInstInfo(i,InstOpcode);
+                function = (GetInstInfo(i,InstMemDisp) >> 14) & 0x3;
+                if ((opcode == 0x1A && function == 1 ) || opcode == 0x34) {
+                    ResolveTargetProc(i, &target);
+                    if (target.name && !strcmp(target.name, "malloc")) {
+                        AddCallInst(i,InstBefore,"BeforeMalloc", REG_ARG_1);
+                        AddCallInst(i, InstAfter, "AfterMalloc");
+                    }
+                }
+            }
+        }
+   }
 }
 /****************************************************************************
  *                                                                          *
@@ -139,3 +161,4 @@ Instrument(int iargc, char **iargv, Obj *obj)
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+
