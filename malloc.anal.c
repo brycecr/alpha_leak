@@ -67,6 +67,55 @@ long 	MaxBrk;
  */
 FILE *	file;
 
+void** mallocd;
+int num_mallocd;
+int max_mallocd;
+
+
+int compare(const void* a, const void* b) {
+    void* vala = *(void**)a;
+    void* valb = *(void**)b;
+    if (vala > valb) {
+        return -1;
+    } else if (vala == valb) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+void insert(void* val) {
+    assert(val);
+    if (num_mallocd >= max_mallocd - 10) {
+        mallocd = realloc(mallocd, max_mallocd*2);
+        max_mallocd*=2;
+    }
+    mallocd[num_mallocd++] = val;
+    qsort(mallocd, num_mallocd, sizeof(void*), compare);
+}
+
+void* find(void* val) {
+    void* result = bsearch(&val, mallocd, num_mallocd, sizeof(void*), compare);
+    return result;
+}
+
+int remove_elem(void* val) {
+    assert(val);
+    void* result = find(val);
+    if (!result) {
+        return 0;
+    }
+    *(long**)result = 0;
+    qsort(mallocd, num_mallocd--, sizeof(void*), compare);
+    return 1;
+}
+
+void BeforeFree(void* addr) {
+    int restul = remove_elem(addr);
+    if (!result) {
+        fprintf(file, "Found a double free for param %p\n", addr);
+    }
+}
 
 
 /*
@@ -99,6 +148,8 @@ void BeforeMalloc(long size)
 */
 void AfterMalloc()
 {
+    fprintf(file, "Return Value %p\n", retval);
+    insert(retval);
     depth--;
 }
 
@@ -142,6 +193,10 @@ void Initialize(long startbrk)
     StartBrk = startbrk;
     MaxBrk = startbrk;
     CurBrk = startbrk;
+
+    max_mallocd = 1024;
+    mallocd = calloc(max_mallocd, sizeof(void*));
+    num_mallocd = 0;
 }
 
 
@@ -173,6 +228,11 @@ void PrintResults()
 	    mallocOther.calls, mallocOther.memoryAllocated);
 	calls += mallocOther.calls;
 	allocated += mallocOther.memoryAllocated;
+    }
+
+    int j;
+    for (j=0; j<num_mallocd; ++j) {
+        fprintf(file, "Found leaked memory at location %x\n", mallocd[j]);
     }
 
     fprintf(file, "\n%8s %15ld %20ld\n", "Totals", calls, allocated);

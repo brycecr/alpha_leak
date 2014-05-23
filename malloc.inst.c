@@ -37,7 +37,8 @@ void InstrumentInit(int iargc, char **iargv)
      */
     AddCallProto("Initialize(long)");
     AddCallProto("BeforeMalloc(REGV)");
-    AddCallProto("AfterMalloc()");
+    AddCallProto("AfterMalloc(REGV)");
+    AddCallProto("BeforeFree(REGV)");
     AddCallProto("BeforeBrk(REGV)");
     AddCallProto("BeforeSbrk(REGV)");
     AddCallProto("PrintResults()");
@@ -75,7 +76,7 @@ Instrument(int iargc, char **iargv, Obj *obj)
     ResolveNamedProc("malloc", &pres);
     if (pres.proc != NULL) {
     AddCallProc(pres.proc, ProcBefore, "BeforeMalloc", REG_ARG_1);
-    AddCallProc(pres.proc, ProcAfter, "AfterMalloc");
+    AddCallProc(pres.proc, ProcAfter, "AfterMalloc", REG_0);
     }
 
     /*
@@ -111,7 +112,10 @@ Instrument(int iargc, char **iargv, Obj *obj)
                     ResolveTargetProc(i, &target);
                     if (target.name && !strcmp(target.name, "malloc")) {
                         AddCallInst(i,InstBefore,"BeforeMalloc", REG_ARG_1);
-                        AddCallInst(i, InstAfter, "AfterMalloc");
+                        AddCallInst(i, InstAfter, "AfterMalloc", REG_0);
+                    }
+                    if (target.name && !strcmp(target.name, "free")) {
+                        AddCallInst(i,InstBefore,"BeforeFree", REG_ARG_1);
                     }
                 }
             }
