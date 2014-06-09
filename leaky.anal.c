@@ -247,13 +247,20 @@ void BeforeSbrk(long size)
     if (CurBrk > MaxBrk)
 	MaxBrk = CurBrk;
 }
+
+
+/* Forward declaration */
 void PrintResults();
 
-void handle(int urmom, siginfo_t* urothermom, void* noturmom) {
+
+/*
+**  Actual signal handler function
+*/
+void handle(int signum, siginfo_t* siginfo, void* context) {
     PrintResults();
     printf("\n");
     printf("ATOM detected forced program termination.\n");
-    printf("Signal: %s\n", __sys_siglist[urmom]);
+    printf("Signal: %s\n", __sys_siglist[signum]);
     exit(42);
 }
 
@@ -337,6 +344,6 @@ void PrintResults()
     }
 
  //   fprintf(file, "\n%8s %15ld %20ld\n", "Totals", calls, allocated);
-//    fprintf(file, "\nMaximum Memory Allocated: %ld bytes\n", MaxBrk - StartBrk);
+ //   fprintf(file, "\nMaximum Memory Allocated: %ld bytes\n", MaxBrk - StartBrk);
     fclose(file);
 }
