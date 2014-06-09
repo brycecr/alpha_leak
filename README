@@ -18,7 +18,7 @@ allocate errors, NULL parameter values to free and NULL
 return values from malloc. It was built using the ATOM 
 program analysis framework by DEC.
 
-LEAKY was written by Kunle Oyelede and Bryce Cronkite-Ratcliff 
+LEAKY was written by Kunle Oyedele and Bryce Cronkite-Ratcliff 
 as part of a class project for CS343 taught by Dawson Engler 
 in Spring Quarter 2014 at Stanford University. 
 It was developed on an DEC AlphaServer 1000 4/266.
