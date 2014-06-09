@@ -1,0 +1,49 @@
+LEAKY THE LEAK CHECKER
+
+Also known as The Nirvana Leak Checker
+
+Because "alpha is dead, sort of like kurt cobain"
+
+0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o
+o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0
+0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o_0_o
+
+LEAKY is a simple memory usage checker for programs that
+use malloc, valloc, calloc, realloc, and free. It is able
+to report the memory location and line number (of allocation)
+of memory that is not freed on program termination (be it
+normal or through SIGTERM, SIGSEGV, SIGABRT, SIGBUS, SIGILL, 
+or SIGFPE). LEAKY also reports double free errors, free-without
+allocate errors, NULL parameter values to free and NULL
+return values from malloc. It was built using the ATOM 
+program analysis framework by DEC.
+
+LEAKY was written by Kunle Oyelede and Bryce Cronkite-Ratcliff 
+as part of a class project for CS343 taught by Dawson Engler 
+in Spring Quarter 2014 at Stanford University. 
+It was developed on an DEC AlphaServer 1000 4/266.
+
+As far as I'm concerned, you can use this for whatever you want.
+Seriously. 
+
+There used to be more tests but they were solutions to CS107
+assignments, so we have refained from including them.
+ 
+OPERATION:
+
+To run, if you have only one source file.
+./leaky.sh [source file name]
+
+To run, if you have a more complicated setup:
+The Atom Instrumentation and Analysis source files are included,
+leaky.inst.c
+leaky.anal.c
+So, follow the atom usage instructions. For most simple setups, 
+this simply involves compiling your application, then calling:
+# atom [executable file] leaky.inst.c leaky.anal.c -o leaky.atom 
+# ./leaky.atom
+The output of leaky's analysis will then be found in leaky_output.txt
+
+Make sure to compile the application to be instrumented
+with debugging symbols (-g) in order to record line number in leaky output.
+
